@@ -1,0 +1,17 @@
+{
+  "name": "mvm-learn",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@mixin.dev/mixin-node-sdk": "^7.4.2",
+    "@solana/web3.js": "^1.98.2",
+    "uuid": "^11.1.0"
+  }
+}
