@@ -1,15 +1,11 @@
 import { v4 } from "uuid";
 import { requestComputerApi } from '.'
+import { getMvmFee } from "./mvm_fee";
+import BigNumber from "bignumber.js";
 import { PublicKey, VersionedTransaction, TransactionMessage, SystemProgram, Transaction, LAMPORTS_PER_SOL } from '@solana/web3.js';
-import { buildMixAddress, newMixinInvoice, attachStorageEntry, attachInvoiceEntry, checkSystemCallSize, buildSystemCallExtra, buildComputerExtra, encodeMtgExtra, OperationTypeSystemCall, OperationTypeUserDeposit, userIdToBytes } from "@mixin.dev/mixin-node-sdk";
+import { buildMixAddress, newMixinInvoice, attachStorageEntry, attachInvoiceEntry, checkSystemCallSize, buildSystemCallExtra, buildComputerExtra, encodeMtgExtra, OperationTypeSystemCall, OperationTypeUserDeposit, userIdToBytes, getInvoiceString } from "@mixin.dev/mixin-node-sdk";
 
-// 第一步先通过 Computer Http Api 获取可用的 Nonce Account 和交易的 Payer 地址。
-// 通过 Computer 执行的 Solana 交易，必须用 Nonce Account Hash 作为 Recent Block Hash，
-// 且其第一个 Instruction 必须为 NonceAdvance。Payer 只可作为交易的 Fee Payer，
-// 不可在 NonceAdvance 之后的 instruction 中操作。
-// 一个 Nonce Account 仅能用于发一笔交易，如果您需要发多笔交易请获取多个 Nonce Account。
-
-const sendSolanaTx = async (program_id: string, user_id: string) => {
+export const sendSolanaTx = async (program_id: string, user_id: string): Promise<string> => {
   // 1. Get the MixAddress of the user which sends the transaction
   const mix = buildMixAddress({
     version: 2,
@@ -54,6 +50,9 @@ const sendSolanaTx = async (program_id: string, user_id: string) => {
     // ...split to multiple transactions
     // or use Address Lookup Tables, LUTs
   }
+
+  const solAmount = '0.01';
+  const fee = await getMvmFee(solAmount)
 
   // 6. Get the mainnet tx extra
   const user = await requestComputerApi('GET', `/users/${mix}`, undefined);
@@ -101,18 +100,17 @@ const sendSolanaTx = async (program_id: string, user_id: string) => {
   });
 
   // 12. Create transaction fee = 0.001 XIN + extra program invoke fee
-  // fee_id 具有实效性，须尽快支付
+  // fee_id would expire, need to pay in time
   let total = BigNumber(computerInfo.params.operation.price).plus(fee.xin_amount).toFixed(8, BigNumber.ROUND_CEIL);
   attachInvoiceEntry(invoice, {
     trace_id: v4(),
     asset_id: "c94ac88f-4671-3976-b60a-09064f1811e8", // XIN
     amount: total,
     extra: Buffer.from(memo),
-    index_references: [0, 1], // 引用前面的 invoice entry
+    index_references: [0, 1], // Use the invoice entry before
     hash_references: []
   });
+
+  const codeUrl = 'https://mixin.one/pay/' + getInvoiceString(invoice);
+  return codeUrl;
 }
-
-
-
-// 2 | UID (8 bytes) | CID (uuid) | SKIP_POSTPROCESS_FLAG (1 byte) | FEE_ID (uuid, optional)

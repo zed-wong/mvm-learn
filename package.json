@@ -12,6 +12,7 @@
   "dependencies": {
     "@mixin.dev/mixin-node-sdk": "^7.4.2",
     "@solana/web3.js": "^1.98.2",
+    "bignumber.js": "^9.3.0",
     "uuid": "^11.1.0"
   }
 }
