@@ -5,5 +5,5 @@ export const requestComputerApi = async (method: string, url: string, body: unkn
 };
 
 const main = () => {
-
+  // 1. register user if not registered
 }

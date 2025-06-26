@@ -2,7 +2,24 @@ import { requestComputerApi } from ".";
 import { encodeMtgExtra } from "@mixin.dev/mixin-node-sdk";
 import { buildMixAddress, buildComputerExtra, OperationTypeAddUser } from "@mixin.dev/mixin-node-sdk";
 
-const registerUser = async (user_id: string) => {
+export const checkUserRegistered = async (user_id: string): Promise<boolean> => {
+  // 1. Get the MixAddress of the user
+  const mix = buildMixAddress({
+    version: 2,
+    uuidMembers: [user_id],
+    xinMembers: [],
+    threshold: 1
+  });
+  console.log(`mix: ${mix}`);
+
+  // 2. Request the computer API to check if the user is registered
+  const resp = await requestComputerApi('GET', `/users/${mix}`, undefined);
+  const isRegistered = resp.id ? true : false;
+  console.log(`isRegistered: ${isRegistered}`);
+  return isRegistered;
+}
+
+export const registerUser = async (user_id: string): Promise<string> => {
   // 1. Get the MixAddress of the user
   const mix = buildMixAddress({
     version: 2,
@@ -32,6 +49,15 @@ const registerUser = async (user_id: string) => {
   // 5. Build the code URL for payment
   let codeUrl = `https://mixin.one/pay/${destination}?amount=${computerInfo.params.operation.price}&memo=${memo}`
   console.log(`codeUrl: ${codeUrl}`);
+  return codeUrl;
 }
 
-registerUser('c3f8b0d2-1e4a-4f5b-9c6d-7e8f9a0b1c2d') // Replace with the actual user_id
+const example = async (user_id: string) => {
+  if (!await checkUserRegistered(user_id)) {
+    const codeUrl = await registerUser(user_id)
+    console.log(`Please pay at: ${codeUrl}`);
+    return codeUrl;
+  }
+}
+
+example()
