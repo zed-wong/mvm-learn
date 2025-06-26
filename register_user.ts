@@ -59,5 +59,3 @@ const example = async (user_id: string) => {
     return codeUrl;
   }
 }
-
-example()
