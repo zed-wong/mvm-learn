@@ -14,6 +14,7 @@ export const checkUserRegistered = async (user_id: string): Promise<boolean> => 
 
   // 2. Request the computer API to check if the user is registered
   const resp = await requestComputerApi('GET', `/users/${mix}`, undefined);
+  console.log(`resp: ${JSON.stringify(resp)}`);
   const isRegistered = resp.id ? true : false;
   console.log(`isRegistered: ${isRegistered}`);
   return isRegistered;

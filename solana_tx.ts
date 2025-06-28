@@ -114,3 +114,5 @@ export const sendSolanaTx = async (program_id: string, user_id: string): Promise
   const codeUrl = 'https://mixin.one/pay/' + getInvoiceString(invoice);
   return codeUrl;
 }
+
+sendSolanaTx('', '44d9717d-8cae-4004-98a1-f9ad544dcfb1')
